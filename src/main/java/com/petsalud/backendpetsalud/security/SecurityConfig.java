@@ -6,6 +6,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,6 +18,7 @@ import com.petsalud.backendpetsalud.jwt.JwtAuthFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity 
 public class SecurityConfig {
 
     @Autowired
@@ -35,7 +37,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/error").permitAll()
 
-                // 2. SOLO ADMIN
+                // 2. SOLO GERENTE
                 // Borrar cualquier recurso
                 .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("GERENTE")
                 // Listar todos los usuarios (solo la lista, no /{id})
@@ -50,7 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/notificaciones/**").hasAuthority("GERENTE")
                 .requestMatchers(HttpMethod.POST, "/api/recompensas/**").hasAuthority("GERENTE")
 
-                // 3. VETERINARIO y ADMIN
+                // 3. EMPLEADO y GERENTE
                 // Expedientes médicos (datos clínicos sensibles)
                 .requestMatchers("/api/expedientes/**").hasAnyAuthority("EMPLEADO", "GERENTE")
                 // Gestión de citas del lado clínico

@@ -4,6 +4,7 @@ import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,12 +35,14 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioActualizado);
     }
 
+    @PreAuthorize("hasAuthority('GERENTE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAuthority('GERENTE')")
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
         List<Usuario> usuarios = usuarioService.listarUsuarios();

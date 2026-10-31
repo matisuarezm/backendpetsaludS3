@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.petsalud.backendpetsalud.security.UsuarioDetailsService;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +44,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7); // quita "Bearer " (7 caracteres)
 
         // 2. ¿De quién es? Leer el email del token (aquí se verifica la firma)
-        String email = jwtServices.getUsernameFromToken(token);
+        String email;
+        try {
+            email = jwtServices.getUsernameFromToken(token);
+        } catch (JwtException e) {
+            // Token alterado, vencido o mal formado
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token invalido o expirado");
+            return;
+        }
 
         // Solo si hay email y la petición aún no está marcada como autenticada
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
