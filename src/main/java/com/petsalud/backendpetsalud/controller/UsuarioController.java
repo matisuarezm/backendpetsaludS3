@@ -34,6 +34,7 @@ public class UsuarioController {
     /**
      * Devuelve un usuario por su id (404 si no existe). La contraseña nunca viaja en la respuesta.
      */
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esUsuario(#id, authentication)")
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
         return usuarioService.obtenerUsuarioPorId(id)
@@ -46,6 +47,8 @@ public class UsuarioController {
      * Actualiza solo nombre, apellido, teléfono y dirección.
      * Usa un DTO para que nadie cambie su rol, email o clave por esta vía (evita la "asignación masiva").
      */
+    // Editar: solo GERENTE o el mismo usuario (un EMPLEADO no edita perfiles ajenos)
+    @PreAuthorize("hasAuthority('GERENTE') or @propiedad.esUsuario(#id, authentication)")
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id,
                                                      @Valid @RequestBody ActualizarUsuarioRequest request) {

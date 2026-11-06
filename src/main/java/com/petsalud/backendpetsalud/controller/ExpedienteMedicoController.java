@@ -5,6 +5,7 @@ import com.petsalud.backendpetsalud.service.ExpedienteMedicoService;
 import jakarta.validation.Valid;                                   // ← NUEVO
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -31,7 +32,9 @@ public class ExpedienteMedicoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/mascota/{mascotaId}")
+    // Un cliente puede ver el historial médico de SU mascota (derecho de acceso a sus datos)
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeMascota(#mascotaId, authentication)")
+    @GetMapping("/mascota/{mascotaId}")                 // listarRegistrosPorMascota    
     public ResponseEntity<List<ExpedienteMedico>> listarRegistrosPorMascota(@PathVariable Long mascotaId) {
         List<ExpedienteMedico> registros = expedienteMedicoService.listarRegistrosPorMascota(mascotaId);
         return ResponseEntity.ok(registros);

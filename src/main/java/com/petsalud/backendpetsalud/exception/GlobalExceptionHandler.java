@@ -1,25 +1,27 @@
 package com.petsalud.backendpetsalud.exception;
 
-import java.util.stream.Collectors;                                                  // ← NUEVO
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;                       // ← NUEVO
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;          // ← NUEVO
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.MethodArgumentNotValidException;                // ← NUEVO
-import org.springframework.web.bind.MissingServletRequestParameterException;        // ← NUEVO
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;  // ← NUEVO
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException; // ← NUEVO
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import com.petsalud.backendpetsalud.dto.ErrorResponse;
+import com.petsalud.backendpetsalud.security.monitor.ActividadSospechosaService;      // ← NUEVO
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Traductor central de errores: convierte las excepciones de controllers y services
- * en respuestas JSON con el código HTTP correcto (400, 401, 403, 409, 500).
+ * en respuestas JSON con el código HTTP correcto (400, 401, 403, 409, 429, 500).
  * Spring elige el método cuyo tipo de excepción sea el MÁS específico, sin importar el orden.
  */
 @RestControllerAdvice
@@ -27,10 +29,19 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @Autowired                                                   // ← NUEVO
+    private ActividadSospechosaService actividadSospechosa;      // ← NUEVO: el "anotador" del log
+
     // 409: email duplicado en el registro
     @ExceptionHandler(EmailDuplicadoException.class)
     public ResponseEntity<ErrorResponse> emailDuplicado(EmailDuplicadoException ex, HttpServletRequest req) {
         return respuesta(HttpStatus.CONFLICT, ex.getMessage(), req);
+    }
+
+    // ← NUEVO — 429: demasiados intentos fallidos de login (cuenta bloqueada 15 minutos)
+    @ExceptionHandler(CuentaBloqueadaException.class)
+    public ResponseEntity<ErrorResponse> cuentaBloqueada(CuentaBloqueadaException ex, HttpServletRequest req) {
+        return respuesta(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), req);
     }
 
     // 401: login con email o clave incorrectos (mensaje genérico a propósito)
@@ -39,14 +50,14 @@ public class GlobalExceptionHandler {
         return respuesta(HttpStatus.UNAUTHORIZED, "Email o contraseña incorrectos", req);
     }
 
-    // 403: @PreAuthorize rechazó el acceso dentro del controller
+    // 403: @PreAuthorize rechazó el acceso (por rol o porque el recurso es de otra persona)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> sinPermiso(AccessDeniedException ex, HttpServletRequest req) {
+        actividadSospechosa.registrarAccesoDenegado(req);        // ← NUEVO: queda anotado en el log
         return respuesta(HttpStatus.FORBIDDEN, "No tiene permisos para este recurso", req);
     }
 
-    // ← NUEVO — 400: un @RequestBody con @Valid no cumplió las reglas
-    // Ejemplo de respuesta: "nombre: Solo puede contener letras; email: Formato de email inválido"
+    // 400: un @RequestBody con @Valid no cumplió las reglas
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validacionBody(MethodArgumentNotValidException ex, HttpServletRequest req) {
         String detalle = ex.getBindingResult().getFieldErrors().stream()
@@ -55,7 +66,7 @@ public class GlobalExceptionHandler {
         return respuesta(HttpStatus.BAD_REQUEST, detalle, req);
     }
 
-    // ← NUEVO — 400: un @RequestParam con anotaciones (@Pattern, @Min...) no cumplió las reglas
+    // 400: un @RequestParam con anotaciones (@Pattern, @Min...) no cumplió las reglas
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<ErrorResponse> validacionParametros(HandlerMethodValidationException ex, HttpServletRequest req) {
         String detalle = ex.getAllValidationResults().stream()
@@ -65,7 +76,7 @@ public class GlobalExceptionHandler {
         return respuesta(HttpStatus.BAD_REQUEST, detalle, req);
     }
 
-    // ← NUEVO — 400: JSON mal escrito, parámetro faltante o de tipo incorrecto (ej. /usuarios/abc o una fecha mal formada)
+    // 400: JSON mal escrito, parámetro faltante o de tipo incorrecto
     @ExceptionHandler({HttpMessageNotReadableException.class,
                        MissingServletRequestParameterException.class,
                        MethodArgumentTypeMismatchException.class})

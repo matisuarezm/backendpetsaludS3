@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.petsalud.backendpetsalud.security.JwtAuthenticationEntryPoint;
 import com.petsalud.backendpetsalud.security.UsuarioDetailsService;
+import com.petsalud.backendpetsalud.security.monitor.ActividadSospechosaService;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -37,6 +38,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtAuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private ActividadSospechosaService actividadSospechosa;
 
     /**
      * Se ejecuta una vez por petición:
@@ -80,11 +84,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException e) {
+            actividadSospechosa.registrarTokenInvalido(request, e.getClass().getSimpleName());
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response,
                     new BadCredentialsException("Token inválido o expirado"));
             return;
         } catch (UsernameNotFoundException e) {
+            actividadSospechosa.registrarTokenInvalido(request, "usuario eliminado"); 
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response,
                     new BadCredentialsException("El usuario del token ya no existe"));

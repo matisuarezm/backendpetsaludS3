@@ -5,6 +5,7 @@ import com.petsalud.backendpetsalud.service.RecompensaService;
 import jakarta.validation.Valid;                                   // ← NUEVO
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -22,14 +23,16 @@ public class RecompensaController {
         return ResponseEntity.ok(nuevaRecompensa);
     }
 
-    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('GERENTE') or @propiedad.esDuenoDeRecompensa(#id, authentication)")
+    @GetMapping("/{id}")                                // obtenerRecompensaPorId
     public ResponseEntity<Recompensa> obtenerRecompensaPorId(@PathVariable Long id) {
         return recompensaService.obtenerRecompensaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasAuthority('GERENTE') or @propiedad.esUsuario(#usuarioId, authentication)")
+    @GetMapping("/usuario/{usuarioId}")                 // listarRecompensasPorUsuario
     public ResponseEntity<List<Recompensa>> listarRecompensasPorUsuario(@PathVariable Long usuarioId) {
         List<Recompensa> recompensas = recompensaService.listarRecompensasPorUsuario(usuarioId);
         return ResponseEntity.ok(recompensas);

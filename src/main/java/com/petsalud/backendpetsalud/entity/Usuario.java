@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.petsalud.backendpetsalud.validation.Patrones;
 
@@ -56,15 +57,19 @@ public class Usuario {
     private Rol rol;
 
     // Relaciones
+    @JsonIgnore
     @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL)
     private List<Mascota> mascotas;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     private List<Venta> ventas;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     private List<Recompensa> recompensas;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     private List<Notificacion> notificaciones;
 }

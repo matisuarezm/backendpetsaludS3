@@ -4,6 +4,7 @@ import com.petsalud.backendpetsalud.entity.Venta;
 import com.petsalud.backendpetsalud.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -14,7 +15,8 @@ public class VentaController {
     @Autowired
     private VentaService ventaService;
 
-    @PostMapping
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esUsuario(#usuarioId, authentication)")
+    @PostMapping                                        // realizarVenta: un cliente no puede comprar a nombre de otro
     public ResponseEntity<Venta> realizarVenta(
             @RequestParam Long usuarioId,
             @RequestBody List<Long> productosIds) {
@@ -22,14 +24,16 @@ public class VentaController {
         return ResponseEntity.ok(nuevaVenta);
     }
 
-    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeVenta(#id, authentication)")
+    @GetMapping("/{id}")                                // obtenerVentaPorId
     public ResponseEntity<Venta> obtenerVentaPorId(@PathVariable Long id) {
         return ventaService.obtenerVentaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esUsuario(#usuarioId, authentication)")
+    @GetMapping("/usuario/{usuarioId}")                 // listarVentasPorUsuario
     public ResponseEntity<List<Venta>> listarVentasPorUsuario(@PathVariable Long usuarioId) {
         List<Venta> ventas = ventaService.listarVentasPorUsuario(usuarioId);
         return ResponseEntity.ok(ventas);

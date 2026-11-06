@@ -68,4 +68,12 @@ public class UsuarioDetails implements UserDetails {
     public boolean isEnabled() {
         return true; // Puedes implementar lógica adicional si es necesario
     }
+
+    /**
+     * Entrega el id del usuario logueado. Lo usa la clase Propiedad
+     * para comparar si un recurso le pertenece.
+     */
+    public Long getId() {
+        return usuario.getId();
+    }
 }

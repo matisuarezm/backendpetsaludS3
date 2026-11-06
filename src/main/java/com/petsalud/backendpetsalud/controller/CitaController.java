@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;                        // ← NUEVO
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;       // ← NUEVO
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +22,7 @@ public class CitaController {
     @Autowired
     private CitaService citaService;
 
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeMascota(#mascotaId, authentication)")                                    // agendarCita: solo para mis mascotas
     @PostMapping
     public ResponseEntity<Cita> agendarCita(
             @RequestParam Long mascotaId,
@@ -35,7 +37,8 @@ public class CitaController {
         return ResponseEntity.ok(nuevaCita);
     }
 
-    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeCita(#id, authentication)")
+    @GetMapping("/{id}")                                // obtenerCitaPorId
     public ResponseEntity<Cita> obtenerCitaPorId(@PathVariable Long id) {
         return citaService.obtenerCitaPorId(id)
                 .map(ResponseEntity::ok)
@@ -52,13 +55,15 @@ public class CitaController {
         return ResponseEntity.ok(citaActualizada);
     }
 
+    @PreAuthorize("hasAuthority('GERENTE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelarCita(@PathVariable Long id) {
         citaService.cancelarCita(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/mascota/{mascotaId}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeMascota(#mascotaId, authentication)")
+    @GetMapping("/mascota/{mascotaId}")                 // listarCitasPorMascota
     public ResponseEntity<List<Cita>> listarCitasPorMascota(@PathVariable Long mascotaId) {
         List<Cita> citas = citaService.listarCitasPorMascota(mascotaId);
         return ResponseEntity.ok(citas);

@@ -69,6 +69,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/recompensas/**").hasAuthority("GERENTE")
 
                 // 3. EMPLEADO y GERENTE
+                // El cliente puede ver el historial de SU mascota: @PreAuthorize revisa que sea el dueño
+                .requestMatchers(HttpMethod.GET, "/api/expedientes/mascota/*").authenticated()
                 // Expedientes médicos (datos clínicos sensibles)
                 .requestMatchers("/api/expedientes/**").hasAnyAuthority("EMPLEADO", "GERENTE")
                 // Gestión de citas del lado clínico

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -17,32 +18,37 @@ public class MascotaController {
     @Autowired
     private MascotaService mascotaService;
 
-    @PostMapping("/propietario/{propietarioId}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esUsuario(#propietarioId, authentication)")
+    @PostMapping("/propietario/{propietarioId}")        // registrarMascota: un cliente solo registra mascotas a su nombre
     public ResponseEntity<Mascota> registrarMascota(@PathVariable Long propietarioId, @Valid @RequestBody Mascota mascota) {
         Mascota nuevaMascota = mascotaService.registrarMascota(mascota, propietarioId);
         return ResponseEntity.ok(nuevaMascota);
     }
 
-    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeMascota(#id, authentication)")
+    @GetMapping("/{id}")                                // obtenerMascotaPorId
     public ResponseEntity<Mascota> obtenerMascotaPorId(@PathVariable Long id) {
         return mascotaService.obtenerMascotaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esDuenoDeMascota(#id, authentication)")
+    @PutMapping("/{id}")                                // actualizarMascota
     public ResponseEntity<Mascota> actualizarMascota(@PathVariable Long id, @Valid @RequestBody Mascota mascota) {
         Mascota mascotaActualizada = mascotaService.actualizarMascota(id, mascota);
         return ResponseEntity.ok(mascotaActualizada);
     }
 
+    @PreAuthorize("hasAuthority('GERENTE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarMascota(@PathVariable Long id) {
         mascotaService.eliminarMascota(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/propietario/{propietarioId}")
+    @PreAuthorize("hasAnyAuthority('EMPLEADO','GERENTE') or @propiedad.esUsuario(#propietarioId, authentication)")
+    @GetMapping("/propietario/{propietarioId}")         // listarMascotasPorPropietario
     public ResponseEntity<List<Mascota>> listarMascotasPorPropietario(@PathVariable Long propietarioId) {
         List<Mascota> mascotas = mascotaService.listarMascotasPorPropietario(propietarioId);
         return ResponseEntity.ok(mascotas);

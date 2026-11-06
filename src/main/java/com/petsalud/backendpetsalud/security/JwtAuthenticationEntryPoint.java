@@ -10,6 +10,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petsalud.backendpetsalud.dto.ErrorResponse;
+import com.petsalud.backendpetsalud.security.monitor.ActividadSospechosaService;   // ← NUEVO
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -23,6 +24,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired                                                   // ← NUEVO
+    private ActividadSospechosaService actividadSospechosa;      // ← NUEVO: el "anotador" del log
+
     /**
      * Arma la respuesta 401. Si no vino token: "Se requiere un token de acceso";
      * si vino un token malo: usa el mensaje recibido (por ejemplo "Token inválido o expirado").
@@ -30,6 +34,12 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException ex) throws IOException {
+
+        // ← NUEVO: si llegó SIN token, lo anotamos en el log
+        if (ex instanceof InsufficientAuthenticationException) {
+            actividadSospechosa.registrarSinToken(request);
+        }
+
         // Sin token, Spring manda un mensaje genérico en inglés: lo traducimos
         String mensaje = (ex instanceof InsufficientAuthenticationException)
                 ? "Se requiere un token de acceso"
