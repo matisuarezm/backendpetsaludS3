@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.petsalud.backendpetsalud.dto.AuthResponse;
 import com.petsalud.backendpetsalud.dto.LoginRequest;
-import com.petsalud.backendpetsalud.jwt.JwtServices;
+import com.petsalud.backendpetsalud.jwt.JwtUtil;
 import com.petsalud.backendpetsalud.security.UsuarioDetailsService;
 
 @RestController
@@ -23,7 +23,7 @@ public class AuthController {
     private UsuarioDetailsService usuarioDetailsService;
 
     @Autowired
-    private JwtServices jwtServices;
+    private JwtUtil JwtUtil;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
@@ -37,7 +37,7 @@ public class AuthController {
         UserDetails user = usuarioDetailsService.loadUserByUsername(request.getEmail());
 
         // 3. Fabricar el token firmado
-        String token = jwtServices.getToken(user);
+        String token = JwtUtil.getToken(user);
 
         return ResponseEntity.ok(new AuthResponse(token));
     }

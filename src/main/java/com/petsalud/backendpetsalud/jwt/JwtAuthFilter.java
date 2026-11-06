@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JwtServices jwtServices;
+    private JwtUtil JwtUtil;
 
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
@@ -46,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 2. ¿De quién es? Leer el email del token (aquí se verifica la firma)
         String email;
         try {
-            email = jwtServices.getUsernameFromToken(token);
+            email = JwtUtil.getUsernameFromToken(token);
         } catch (JwtException e) {
             // Token alterado, vencido o mal formado
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -61,7 +61,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails user = usuarioDetailsService.loadUserByUsername(email);
 
             // 4. ¿Es válida? Email calza y no está vencida
-            if (jwtServices.isTokenValid(token, user)) {
+            if (JwtUtil.isTokenValid(token, user)) {
 
                 // 5. Marcar la petición como autenticada, con sus roles
                 UsernamePasswordAuthenticationToken authToken =
