@@ -2,6 +2,7 @@ package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
+import com.petsalud.backendpetsalud.exception.EmailDuplicadoException;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,16 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    /**
+     * Registra un usuario nuevo: si el email ya existe lanza EmailDuplicadoException (responde 409);
+     * asigna siempre el rol CLIENTE y cifra la clave con BCrypt antes de guardar.
+     */
     @Override
     public Usuario registrarUsuario(Usuario usuario) {
         // Verificar si el email ya está registrado
         Optional<Usuario> usuarioExistente = usuarioRepository.findByEmail(usuario.getEmail());
         if (usuarioExistente.isPresent()) {
-            throw new IllegalArgumentException("El email ya está registrado");
+            throw new EmailDuplicadoException(usuario.getEmail());
         }
         
         usuario.setRol(Rol.CLIENTE);  //Esto asigna que cualquier usario que se cree por postman tengo rol CLIENTE por seguridad
@@ -44,6 +49,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findByEmail(email);
     }
 
+    /**
+     * Cambia solo los datos de contacto. Email, contraseña y rol no se modifican aquí.
+     */
     @Override
     public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
         return usuarioRepository.findById(id).map(usuario -> {

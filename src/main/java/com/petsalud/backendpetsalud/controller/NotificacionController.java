@@ -2,6 +2,7 @@ package com.petsalud.backendpetsalud.controller;
 
 import com.petsalud.backendpetsalud.entity.Notificacion;
 import com.petsalud.backendpetsalud.service.NotificacionService;
+import jakarta.validation.Valid;                                   // ← NUEVO
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,8 @@ public class NotificacionController {
     private NotificacionService notificacionService;
 
     @PostMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Notificacion> enviarNotificacion(@PathVariable Long usuarioId, @RequestBody Notificacion notificacion) {
+    public ResponseEntity<Notificacion> enviarNotificacion(@PathVariable Long usuarioId,
+                                                           @Valid @RequestBody Notificacion notificacion) { // ← NUEVO: @Valid
         Notificacion nuevaNotificacion = notificacionService.enviarNotificacion(usuarioId, notificacion);
         return ResponseEntity.ok(nuevaNotificacion);
     }

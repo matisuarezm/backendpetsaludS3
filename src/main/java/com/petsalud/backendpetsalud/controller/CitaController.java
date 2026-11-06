@@ -2,7 +2,13 @@ package com.petsalud.backendpetsalud.controller;
 
 import com.petsalud.backendpetsalud.entity.Cita;
 import com.petsalud.backendpetsalud.service.CitaService;
+import com.petsalud.backendpetsalud.validation.Patrones;          // ← NUEVO
+import jakarta.validation.constraints.FutureOrPresent;             // ← NUEVO
+import jakarta.validation.constraints.NotBlank;                    // ← NUEVO
+import jakarta.validation.constraints.Pattern;                     // ← NUEVO
+import jakarta.validation.constraints.Size;                        // ← NUEVO
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;       // ← NUEVO
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
@@ -19,10 +25,13 @@ public class CitaController {
     public ResponseEntity<Cita> agendarCita(
             @RequestParam Long mascotaId,
             @RequestParam Long veterinarioId,
-            @RequestParam String fechaHora, // Formato ISO 8601
-            @RequestParam String motivo) {
-        LocalDateTime fechaHoraParsed = LocalDateTime.parse(fechaHora);
-        Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHoraParsed, motivo);
+            // ← CAMBIO: Spring convierte la fecha solo (formato 2026-11-20T10:30:00); si viene mal, responde 400
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @FutureOrPresent(message = "La cita no puede ser en el pasado") LocalDateTime fechaHora,
+            // ← NUEVO: validación del texto libre
+            @RequestParam @NotBlank @Size(max = 200)
+            @Pattern(regexp = Patrones.TEXTO_SEGURO, message = "Contiene caracteres no permitidos") String motivo) {
+        Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo);
         return ResponseEntity.ok(nuevaCita);
     }
 
@@ -34,7 +43,11 @@ public class CitaController {
     }
 
     @PutMapping("/{id}/estado")
-    public ResponseEntity<Cita> actualizarEstadoCita(@PathVariable Long id, @RequestParam String estado) {
+    public ResponseEntity<Cita> actualizarEstadoCita(
+            @PathVariable Long id,
+            // ← NUEVO: lista blanca, solo se aceptan estos 3 valores
+            @RequestParam @Pattern(regexp = "^(Agendada|Cancelada|Completada)$",
+                    message = "Estado inválido: use Agendada, Cancelada o Completada") String estado) {
         Cita citaActualizada = citaService.actualizarEstadoCita(id, estado);
         return ResponseEntity.ok(citaActualizada);
     }
@@ -59,11 +72,10 @@ public class CitaController {
 
     @GetMapping("/entre-fechas")
     public ResponseEntity<List<Cita>> listarCitasEntreFechas(
-            @RequestParam String inicio,
-            @RequestParam String fin) {
-        LocalDateTime inicioParsed = LocalDateTime.parse(inicio);
-        LocalDateTime finParsed = LocalDateTime.parse(fin);
-        List<Cita> citas = citaService.listarCitasEntreFechas(inicioParsed, finParsed);
+            // ← CAMBIO: igual que arriba, conversión automática y 400 si la fecha está mal
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fin) {
+        List<Cita> citas = citaService.listarCitasEntreFechas(inicio, fin);
         return ResponseEntity.ok(citas);
     }
 }

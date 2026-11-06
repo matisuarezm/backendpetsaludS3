@@ -2,12 +2,15 @@ package com.petsalud.backendpetsalud.entity;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+
+import com.petsalud.backendpetsalud.validation.Patrones;
 
 @Entity
 @Table(name = "notificaciones")
@@ -21,9 +24,12 @@ public class Notificacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank @Size(max = 500)
+    @Pattern(regexp = Patrones.TEXTO_SEGURO, message = "Contiene caracteres no permitidos")
     private String mensaje;
 
-    private String tipo; // Ejemplos: "Promoción", "Recordatorio", "Evento"
+    @Pattern(regexp = "^(Promoción|Recordatorio|Evento)$", message = "Tipo inválido")
+    private String tipo;
 
     private LocalDateTime fecha;
 

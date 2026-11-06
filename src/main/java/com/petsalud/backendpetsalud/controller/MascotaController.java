@@ -2,6 +2,9 @@ package com.petsalud.backendpetsalud.controller;
 
 import com.petsalud.backendpetsalud.entity.Mascota;
 import com.petsalud.backendpetsalud.service.MascotaService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +18,7 @@ public class MascotaController {
     private MascotaService mascotaService;
 
     @PostMapping("/propietario/{propietarioId}")
-    public ResponseEntity<Mascota> registrarMascota(@PathVariable Long propietarioId, @RequestBody Mascota mascota) {
+    public ResponseEntity<Mascota> registrarMascota(@PathVariable Long propietarioId, @Valid @RequestBody Mascota mascota) {
         Mascota nuevaMascota = mascotaService.registrarMascota(mascota, propietarioId);
         return ResponseEntity.ok(nuevaMascota);
     }
@@ -28,7 +31,7 @@ public class MascotaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mascota> actualizarMascota(@PathVariable Long id, @RequestBody Mascota mascota) {
+    public ResponseEntity<Mascota> actualizarMascota(@PathVariable Long id, @Valid @RequestBody Mascota mascota) {
         Mascota mascotaActualizada = mascotaService.actualizarMascota(id, mascota);
         return ResponseEntity.ok(mascotaActualizada);
     }

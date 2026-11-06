@@ -2,12 +2,15 @@ package com.petsalud.backendpetsalud.entity;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+
+import com.petsalud.backendpetsalud.validation.Patrones;
 
 @Entity
 @Table(name = "expedientes_medicos")
@@ -23,10 +26,16 @@ public class ExpedienteMedico {
 
     private LocalDateTime fecha;
 
+    @NotBlank @Size(max = 1000)
+    @Pattern(regexp = Patrones.TEXTO_SEGURO, message = "Contiene caracteres no permitidos")
     private String descripcion;
 
+    @NotBlank @Size(max = 1000)
+    @Pattern(regexp = Patrones.TEXTO_SEGURO, message = "Contiene caracteres no permitidos")
     private String diagnostico;
 
+    @NotBlank @Size(max = 1000)
+    @Pattern(regexp = Patrones.TEXTO_SEGURO, message = "Contiene caracteres no permitidos")
     private String tratamiento;
 
     // Relaciones

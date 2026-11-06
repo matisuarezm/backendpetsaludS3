@@ -16,6 +16,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.petsalud.backendpetsalud.jwt.JwtAuthFilter;
 
+/**
+ * SecurityConfig: el "reglamento" de seguridad de la API.
+ * Define qué rutas son públicas, qué rol necesita cada ruta, que no se usen sesiones (stateless),
+ * quién responde los errores 401/403 y en qué lugar se ubica el filtro JWT.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity 
@@ -27,6 +32,17 @@ public class SecurityConfig {
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
 
+    @Autowired
+    private JwtAuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private JwtAccessDeniedHandler accessDeniedHandler;
+
+    /**
+     * Arma la cadena de seguridad que revisa CADA petición.
+     * Las reglas se leen de arriba hacia abajo y se aplica la primera que calce:
+     * por eso las más específicas van primero y "anyRequest().authenticated()" al final.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -67,18 +83,29 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                //.httpBasic(withDefaults());  //Aqui utilizabamos el mail y la contraseña
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint(authenticationEntryPoint)  // 401
+                    .accessDeniedHandler(accessDeniedHandler)            // 403
+                )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); //Agregamos el filtro para autenticar con el token
 
         return http.build();
     }
 
+    /**
+     * Entrega el algoritmo BCrypt: cifra la contraseña al registrar y la compara en el login.
+     * Es el mismo objeto en ambos lados, por eso las claves calzan.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     // Necesario para la autenticación en AuthController
+    /**
+     * Entrega el "revisor de credenciales" que usa AuthController en el login:
+     * busca al usuario por email y compara la clave con BCrypt.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
