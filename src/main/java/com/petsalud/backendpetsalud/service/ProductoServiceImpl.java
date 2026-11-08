@@ -2,7 +2,6 @@ package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.entity.Producto;
 import com.petsalud.backendpetsalud.repository.ProductoRepository;
-import com.petsalud.backendpetsalud.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

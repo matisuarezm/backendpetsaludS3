@@ -2,7 +2,7 @@ package com.petsalud.backendpetsalud.controller;
 
 import com.petsalud.backendpetsalud.entity.Recompensa;
 import com.petsalud.backendpetsalud.service.RecompensaService;
-import jakarta.validation.Valid;                                   // ← NUEVO
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +18,7 @@ public class RecompensaController {
 
     @PostMapping("/usuario/{usuarioId}")
     public ResponseEntity<Recompensa> agregarRecompensa(@PathVariable Long usuarioId,
-                                                        @Valid @RequestBody Recompensa recompensa) { // ← NUEVO: @Valid
+                                                        @Valid @RequestBody Recompensa recompensa) {
         Recompensa nuevaRecompensa = recompensaService.agregarRecompensa(usuarioId, recompensa);
         return ResponseEntity.ok(nuevaRecompensa);
     }

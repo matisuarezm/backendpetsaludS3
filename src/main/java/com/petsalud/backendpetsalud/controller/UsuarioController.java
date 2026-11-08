@@ -1,9 +1,9 @@
 package com.petsalud.backendpetsalud.controller;
 
-import com.petsalud.backendpetsalud.dto.ActualizarUsuarioRequest;   // ← NUEVO
+import com.petsalud.backendpetsalud.dto.ActualizarUsuarioRequest;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.service.UsuarioService;
-import jakarta.validation.Valid;                                    // ← NUEVO
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +26,7 @@ public class UsuarioController {
      * El servicio fuerza el rol CLIENTE y cifra la clave.
      */
     @PostMapping("/registro")
-    public ResponseEntity<Usuario> registrarUsuario(@Valid @RequestBody Usuario usuario) { // ← CAMBIO: @Valid
+    public ResponseEntity<Usuario> registrarUsuario(@Valid @RequestBody Usuario usuario) {
         Usuario nuevoUsuario = usuarioService.registrarUsuario(usuario);
         return ResponseEntity.ok(nuevoUsuario);
     }
@@ -42,12 +42,12 @@ public class UsuarioController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ← CAMBIO: recibe el DTO (solo campos editables) en vez de la entidad completa
+    // Recibe el DTO (solo campos editables) en vez de la entidad completa
     /**
      * Actualiza solo nombre, apellido, teléfono y dirección.
      * Usa un DTO para que nadie cambie su rol, email o clave por esta vía (evita la "asignación masiva").
      */
-    // Editar: solo GERENTE o el mismo usuario (un EMPLEADO no edita perfiles ajenos)
+    // Para editar: solo GERENTE o el mismo usuario (un EMPLEADO no edita perfiles ajenos)
     @PreAuthorize("hasAuthority('GERENTE') or @propiedad.esUsuario(#id, authentication)")
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id,

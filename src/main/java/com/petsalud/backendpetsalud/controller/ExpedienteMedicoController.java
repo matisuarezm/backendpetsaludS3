@@ -2,7 +2,7 @@ package com.petsalud.backendpetsalud.controller;
 
 import com.petsalud.backendpetsalud.entity.ExpedienteMedico;
 import com.petsalud.backendpetsalud.service.ExpedienteMedicoService;
-import jakarta.validation.Valid;                                   // ← NUEVO
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +20,7 @@ public class ExpedienteMedicoController {
     public ResponseEntity<ExpedienteMedico> agregarRegistro(
             @RequestParam Long mascotaId,
             @RequestParam Long veterinarioId,
-            @Valid @RequestBody ExpedienteMedico registro) {       // ← NUEVO: @Valid
+            @Valid @RequestBody ExpedienteMedico registro) {
         ExpedienteMedico nuevoRegistro = expedienteMedicoService.agregarRegistro(mascotaId, veterinarioId, registro);
         return ResponseEntity.ok(nuevoRegistro);
     }

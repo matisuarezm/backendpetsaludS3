@@ -4,7 +4,6 @@ import com.petsalud.backendpetsalud.entity.Recompensa;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.RecompensaRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
-import com.petsalud.backendpetsalud.service.RecompensaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

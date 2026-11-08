@@ -3,7 +3,7 @@ package com.petsalud.backendpetsalud.exception;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;                       // ← NUEVO
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import com.petsalud.backendpetsalud.dto.ErrorResponse;
-import com.petsalud.backendpetsalud.security.monitor.ActividadSospechosaService;      // ← NUEVO
+import com.petsalud.backendpetsalud.security.monitor.ActividadSospechosaService;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -29,8 +29,8 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @Autowired                                                   // ← NUEVO
-    private ActividadSospechosaService actividadSospechosa;      // ← NUEVO: el "anotador" del log
+    @Autowired
+    private ActividadSospechosaService actividadSospechosa;
 
     // 409: email duplicado en el registro
     @ExceptionHandler(EmailDuplicadoException.class)
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
         return respuesta(HttpStatus.CONFLICT, ex.getMessage(), req);
     }
 
-    // ← NUEVO — 429: demasiados intentos fallidos de login (cuenta bloqueada 15 minutos)
+    // 429: demasiados intentos fallidos de login (cuenta bloqueada 15 minutos)
     @ExceptionHandler(CuentaBloqueadaException.class)
     public ResponseEntity<ErrorResponse> cuentaBloqueada(CuentaBloqueadaException ex, HttpServletRequest req) {
         return respuesta(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), req);
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
     // 403: @PreAuthorize rechazó el acceso (por rol o porque el recurso es de otra persona)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> sinPermiso(AccessDeniedException ex, HttpServletRequest req) {
-        actividadSospechosa.registrarAccesoDenegado(req);        // ← NUEVO: queda anotado en el log
+        actividadSospechosa.registrarAccesoDenegado(req);
         return respuesta(HttpStatus.FORBIDDEN, "No tiene permisos para este recurso", req);
     }
 
